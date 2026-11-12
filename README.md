@@ -28,22 +28,38 @@ All runs use the same 45,000 / 5,000 stratified split and the same optimizer set
 
 Hold-out accuracy is measured at the last epoch, without test-time augmentation.
 
+### Architecture variants
+
+Different ways of spending a similar parameter budget, all trained for 60 epochs with the recipe of experiment 3.
+
+| Model | Idea | Stage widths | Blocks per stage | Parameters | Hold-out acc. | Mean of last 5 epochs |
+|---|---|---|---|---|---|---|
+| A | baseline size | 64, 128, 256 | 2, 2, 2 | 2,777,674 | 95.40% | 95.42% |
+| B | deeper | 64, 128, 256 | 3, 3, 3 | 4,327,754 | 95.82% | 95.71% |
+| C | wider | 80, 160, 320 | 2, 2, 2 | 4,337,370 | 95.96% | 96.04% |
+| D | four thin stages | 42, 84, 168, 336 | 2, 2, 2, 2 | 4,815,940 | 94.88% | 94.86% |
+| E | B + squeeze-and-excitation | 64, 128, 256 | 3, 3, 3 | 4,361,438 | 95.80% | 95.79% |
+
+Models B, C and E are within noise of each other; keeping four thin stages (D) is clearly worse.
+
 ### Kaggle scores
 
 | Submission | Public | Private |
 |---|---|---|
 | Model B, 200 epochs, standard augmentation | 0.867 | 0.827 |
+| Standard augmentation + test-time BatchNorm adaptation | 0.860 | 0.829 |
+| Standard augmentation + BatchNorm adaptation + class-balanced prediction | 0.859 | 0.829 |
 | **Experiment 4: strong augmentation (final)** | **0.867** | **0.840** |
 | Experiment 4 + test-time BatchNorm adaptation | 0.859 | 0.836 |
 | Experiment 4 + BatchNorm adaptation + class-balanced prediction | 0.861 | 0.838 |
 
-**Disclosure.** The last two rows use the unlabeled test images at prediction time (BatchNorm statistics recomputed from the test images; class probabilities rescaled to be balanced). Both techniques were explicitly allowed by the instructor. They did not improve the score, and the final result does not use them.
+**Disclosure.** The four rows with BatchNorm adaptation use the unlabeled test images at prediction time (BatchNorm statistics recomputed from the test images; class probabilities rescaled to be balanced). Both techniques were explicitly allowed by the instructor. They did not improve the score, and the final result does not use them.
 
 ## Repository contents
 
 | File | Description |
 |---|---|
-| `resnet_cifar10_v3.ipynb` | Complete, executed notebook: data loading, model, training, all experiments, plots, final accuracy and parameter count, Kaggle submission files |
+| `resnet_cifar10_v4.ipynb` | Complete, executed notebook: data loading, model, training, all experiments, plots, final accuracy and parameter count, Kaggle submission files |
 | `README.md` | This file |
 
 ## How to reproduce
@@ -51,10 +67,10 @@ Hold-out accuracy is measured at the last epoch, without test-time augmentation.
 The notebook is written for Google Colab with a T4 GPU.
 
 1. Download the competition data from Kaggle and upload the zip file (`data-2.zip`, containing `train_images/`, `test_images/`, `train_labels.csv`, `test.csv`, `sample_submission.csv`) anywhere in your Google Drive.
-2. Open `resnet_cifar10_v3.ipynb` in Colab and select `Runtime > Change runtime type > T4 GPU`.
+2. Open `resnet_cifar10_v4.ipynb` in Colab and select `Runtime > Change runtime type > T4 GPU`.
 3. Select `Runtime > Run all` and allow access to Google Drive when asked.
 
-The full notebook takes about 2.5 hours on a T4 (about 10 s per epoch for model A and 16 s for model B). A checkpoint is saved to `MyDrive/dl-project1/runs/` after every epoch; if the session disconnects, run all cells again and training resumes where it stopped. Set `SMOKE_TEST = True` in the first code cell for a 2-epoch run that only checks the pipeline.
+The full notebook takes about 3.5 hours on a T4 (10 to 19 s per epoch depending on the model). A checkpoint is saved to `MyDrive/dl-project1/runs/` after every epoch; if the session disconnects, run all cells again and training resumes where it stopped. Set `SMOKE_TEST = True` in the first code cell for a 2-epoch run that only checks the pipeline.
 
 Outside Colab, set the environment variables `DATA_DIR` (folder containing the unzipped data) and `OUT_DIR` (folder for checkpoints and results). Requirements: Python 3, PyTorch 2.3 or newer, NumPy, pandas, Matplotlib, Pillow.
 
@@ -87,4 +103,7 @@ Outputs written to the results folder:
 * B. Recht, R. Roelofs, L. Schmidt, V. Shankar. Do CIFAR-10 Classifiers Generalize to CIFAR-10? arXiv:1806.00451, 2018.
 * Z. Nado et al. Evaluating Prediction-Time Batch Normalization for Robustness under Covariate Shift. arXiv:2006.10963, 2020.
 * S. Schneider et al. Improving Robustness against Common Corruptions by Covariate Shift Adaptation. NeurIPS 2020.
+* J. Hu, L. Shen, G. Sun. Squeeze-and-Excitation Networks. CVPR 2018.
+* S. Zagoruyko, N. Komodakis. Wide Residual Networks. BMVC 2016.
+* T. He et al. Bag of Tricks for Image Classification with Convolutional Neural Networks. CVPR 2019.
 * A. Krizhevsky. Learning Multiple Layers of Features from Tiny Images. 2009.
